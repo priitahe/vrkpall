@@ -132,7 +132,8 @@ def jaga_kaheks_väljakuks(võistluspaarid):
     return võistlustabel
 
 (linn, võistkonnad) = loe_tsoon(tsoonifail, tsooni_nr)
-märgi_koduvõistkond(võistkonnad, 'Rae SK I (M.S)', koduvõistkonna_nr)
+#märgi_koduvõistkond(võistkonnad, 'Rae SK I (M.S)', koduvõistkonna_nr)
 võistluspaarid = loo_võistluspaarid(berger6_2p2v, võistkonnad)
 #kuva_võistlustabel(võistluspaarid, True)
 kuva_võistlustabel(jaga_kaheks_väljakuks(võistluspaarid), algusaeg, True)
+#kuva_võistlustabel(võistluspaarid, algusaeg, True)

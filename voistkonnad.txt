@@ -4,7 +4,6 @@
 17. Paide Võrkpalliklubi
 Narva SK Energia/SK Galla II
 Jõhvi spordikool
-Proovi võistkond
 
 #2,Jüri
 2. Rae spordikool I (M.S.)
@@ -16,7 +15,7 @@ Keila Võrkpallikool
 
 #3,Kiili
 3. Spordiklubi Tats Kiili
-14. Neemeco Gerardo’s Toys/Kohila vald
+14. Neemeco Gerardo's Toys/Kohila vald
 19. Pärnu spordikool III (H.S.)
 Selver Tallinn IV (K.A.)
 Selver Viimsi
