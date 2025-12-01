@@ -1,0 +1,68 @@
+#1,Narva 
+1. Narva SK Energia/SK Galla I
+16. Pärnu spordikool II (R.E.)
+17. Paide Võrkpalliklubi
+Narva SK Energia/SK Galla II
+Jõhvi spordikool
+Proovi võistkond
+
+#2,Jüri
+2. Rae spordikool I (M.S.)
+15. Tallinna SS Kalev (S.T.)
+18. Selver Tallinn III (G-K.T.)
+Selver Tallinn V (I.B.)
+Rae Spordikool II (K.P.)
+Keila Võrkpallikool
+
+#3,Kiili
+3. Spordiklubi Tats Kiili
+14. Neemeco Gerardo’s Toys/Kohila vald
+19. Pärnu spordikool III (H.S.)
+Selver Tallinn IV (K.A.)
+Selver Viimsi
+Kohila võrkpalliklubi
+
+#4,Pärnu
+4. Pärnu spordikool I (K.A.)
+13. Selver Tallinn II (E.L.)
+Saaremaa spordikool
+Läänemaa spordikool
+Selver Tallinn VII (D.W.)
+
+#5,Tartu
+5. Tartu Katoliku spordiklubi I
+12. Selver Tallinn I (M.M.)
+Tartu Katoliku spordiklubi II
+Bigbank Tartu II (A.H.)
+Bigbank Tartu III (A.M)
+Selver Tallinn VIII (M.M.)
+
+#6,Põlva
+6. Põlva spordikool
+11. Viljandi spordikool
+Võru spordikool
+Elva SK Altia
+Bigbank Tartu IV (S.L.)
+Bigbank Tartu V (S.L.)
+
+#7,Tartu
+7. Tartu Spordiselts Kalev I (M.K.)
+10. Bigbank Tartu I (J.J.)
+Tartu Spordiselts Kalev II (R.K.)
+Selver Tallinn VI (S.T.)
+Selver Tallinn IX (S.O.)
+
+#8,Rakvere
+8. Rakvere spordikool
+9. ATO SK Rapla/Saue VK I
+Jõgeva Valla spordikool/Torma
+ATO SK Rapla/Saue VK II
+SK Raesport/Tabasalu
+
+#9,Test
+SK Tats I (R.T)
+Selver Tallinn IV (K.A.)
+Rakvere spordikool
+Tallinna SS Kalev (A. K.)
+Rae SK I (M.S)
+Selver Tallinn III (K-R.K.)
