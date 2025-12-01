@@ -1,8 +1,10 @@
 from pprint import pprint
 from datetime import datetime, timedelta
+import tkinter as tk
+from tkinter import ttk, messagebox
 
 tsoonifail = 'voistkonnad.txt'
-tsooni_nr = 10
+
 koduvõistkonna_nr = 5
 algusaeg = '15:00'
 algusaeg = datetime.strptime(algusaeg, "%H:%M")
@@ -68,6 +70,19 @@ def loe_tsoon(tsoonifail, tsooni_nr):
         
         return (tsooni_linn, võistkonnad)
 
+def loe_koik_võistkonnad(tsoonifail):
+    #Loeb failist KÕIK võistkonnad (kõikidest tsoonidest).
+    võistkonnad = []
+    with open(tsoonifail, encoding="utf8") as f:
+        for rida in f:
+            rida = rida.strip()
+            if not rida:
+                continue
+            if rida.startswith("#"):
+                # tsoonirida (#10, Tallinn jne) – selle jätame vahele
+                continue
+            võistkonnad.append(rida)
+    return võistkonnad
 
 def märgi_koduvõistkond(võistkonnad, koduvõistkond, kodu_nr):
     # sisend: võistkondade nimede järjend, koduvõistkonna nimi, kodu võistkonna nr, nt 5
@@ -160,10 +175,6 @@ def jaga_kaheks_väljakuks(võistluspaarid):
     
     return võistlustabel
 
-
-import tkinter as tk
-from tkinter import ttk, messagebox
-
 def vali_berger_ja_väljakud(võistkondade_arv, võistluse_tüüp):
   ühepäevane = "ühepäevane" in võistluse_tüüp
   kahepäevane = "kahepäevane" in võistluse_tüüp
@@ -198,6 +209,8 @@ def vali_berger_ja_väljakud(võistkondade_arv, võistluse_tüüp):
   return berger, väljakuid, kahepäevane
   
 def genereeri_ajakava_gui(vanuseklass, kuupäev, võistluse_tüüp, algus1, algus2, kodu_võistkond_nimi):
+  if len(valitud_võistkonnad) not in (5, 6):
+        raise ValueError("Praegu on toetatud ainult 5 või 6 võistkonnaga turniir.")
   try: 
     algus1_dt = datetime.strptime(f"{kuupäev} {algus1}", "%Y-%m-%d %H:%M")
   except ValueError:
@@ -208,10 +221,17 @@ def genereeri_ajakava_gui(vanuseklass, kuupäev, võistluse_tüüp, algus1, algu
   except ValueError:
     algus2_dt = None
 
-  (linn, võistkonnad) = loe_tsoon(tsoonifail, tsooni_nr)
-  #märgi_koduvõistkond(võistkonnad, 'Rae SK I (M.S)', koduvõistkonna_nr)
+  if vanuseklass == "U16":
+        mängu_kestus = timedelta(hours=1, minutes=15)
+    else:  
+        mängu_kestus = timedelta(hours=2)
 
+  võistkonnad = valitud_võistkonnad[:]
+  
   if kodu_võistkond_nimi.strip():
+    if kodu_võistkond_nimi.strip() not in võistkonnad:
+      raise ValueError("Koduvõistkond peab olema valitud võistkondade seas.")
+       
     märgi_koduvõistkond(võistkonnad, kodu_võistkond_nimi.strip(), koduvõistkonna_nr)
 
   berger, väljakuid, kahepäevane = vali_berger_ja_väljakud(len(võistkonnad), võistluse_tüüp)
@@ -227,15 +247,29 @@ def genereeri_ajakava_gui(vanuseklass, kuupäev, võistluse_tüüp, algus1, algu
 
   print()
   print("==========================================")
-  print(f"Tsoon: {linn}, kuupäev: {kuupäev}, vanuseklass: {vanuseklass}")
+  print(f"Kuupäev: {kuupäev}, vanuseklass: {vanuseklass}")
   print(f"Võistluse tüüp: {võistluse_tüüp}")
+  print("Osalevad võistkonnad:")
+  for v in võistkonnad:
+    print(" - ", v)
   print("==========================================")
+  
+  
   if kahepäevane and algus2_dt is not None:
     kuva_võistlustabel(tabel, algus1_dt, kakspäeva=True, algusaeg2=algus2_dt, mängu_kestus=mängu_kestus)
   else:
     kuva_võistlustabel(tabel, algus1_dt, kakspäeva=False, mängu_kestus=mängu_kestus)
 
 def loo_gui(): #Sellega peaks siis saama luua akent ehk kasutajaliidest:valida vanuseklassi, sisestada kuupäeva, valida võistlsue tüüp 1/2päeva, 1/2väljakut), isestada päevade algusajad, koduvõistkonnanimi ning lõpuks geenereerida ajakava.
+  try:
+    kõik_võistkonnad = loe_koik_võistkonnad(tsoonifail)
+  except Exception as e:
+    print("Viga võistkondade lugemisel:", e)
+    return 
+  if not kõik_võistkonnad:
+    print("Failist ei leitud ühtegi võistkonda.")
+    return
+    
   root = tk.Tk()
   root.title("Võrkpalli võistluse ajakava")
 
@@ -245,42 +279,58 @@ def loo_gui(): #Sellega peaks siis saama luua akent ehk kasutajaliidest:valida v
   tüüp_var = tk.StringVar(value="kahepäevane kahel väljakul")
   algus1_var = tk.StringVar(value="10:00")
   algus2_var = tk.StringVar(value="10:00")
-  kodu_var = tk.StringVar(value="") #nt:"Rae Spordikool I (M.S)"
+  kodu_var = tk.StringVar(value=kõik_võistkonnad[0]) #vaikimisi esimene
 
-  #vanuseklass
-  ttk.Label(root, text="Vanuseklass:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
-  ttk.Radiobutton(root, text="U16", variable=vanuse_var, value="U16").grid(row=0, column=1, sticky="w")
-  ttk.Radiobutton(root, text="U18", variable=vanuse_var, value="U18").grid(row=0, column=2, sticky="w")
-  ttk.Radiobutton(root, text="U20", variable=vanuse_var, value="U20").grid(row=0, column=3, sticky="w")
+   # võistkondade valik
+  ttk.Label(root, text="Kõik võistkonnad (vali osalejad):").grid(row=0, column=0, columnspan=2, sticky="w", padx=5, pady=5)
 
-  #kuupäev
-  ttk.Label(root, text="Võistluse kuupäev (YYYY-MM-DD):").grid(row=1, column=0, sticky="w", padx=5, pady=5)
-  ttk.Entry(root, textvariable=kuupäev_var, width=12).grid(row=1, column=1, sticky="w")
-
-  #võistluse tüüp
-  ttk.Label(root, text="Võistluse tüüp:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
-  tüüp_combo = ttk.Combobox(root, textvariable=tüüp_var, values=["ühepäevane ühel väljakul", "ühepäevane kahel väljakul", "kahepäevane ühel väljakul", "kahepäevane kahel väljakul",], state="readonly", width=28)
-  tüüp_combo.grid(row=2, column=1, columnspan=3, sticky="w")
-
-  #algusajad
-  ttk.Label(root, text="Algusaeg I päeval (HH:MM):").grid(row=3, column=0, sticky="w", padx=5, pady=5)
-  ttk.Entry(root, textvariable=algus1_var, width=8).grid(row=3, column=1, sticky="w")
-
-  ttk.Label(root, text="Algusaeg II päeval (HH:MM):").grid(row=4, column=0, sticky="w", padx=5, pady=5)
-  ttk.Entry(root, textvariable=algus2_var, width=8).grid(row=4, column=1, sticky="w")
+  võistkonna_listbox = tk.Listbox(root, selectmode="extended", height=10, width=40)
+  for nimi in kõik_võistkonnad:
+    võistkonna_listbox.insert(tk.END, nimi)
+  võistkonna_listbox.grid(row=1, column=0, columnspan=2, sticky="w", padx=5)
 
   #koduvõistkond
-  ttk.Label(root, text="Koduvõistkonna nimi:").grid(row=5, column=0, sticky="w", padx=5, pady=5)
-  ttk.Entry(root, textvariable=kodu_var, width=40).grid(row=5, column=1, columnspan=3, sticky="w")
+  ttk.Label(root, text="Koduvõistkonna nimi:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+  kodu_combo = ttk.Combobox(root, textvariable=kodu_var, values=võistkonnad, state="readonly", width=37)
+  kodu_combo.grid(row=2, column=1, columnspan=3, sticky="w")
 
+  
+   #vanuseklass
+  ttk.Label(root, text="Vanuseklass:").grid(row=3, column=0, sticky="w", padx=5, pady=5)
+  ttk.Radiobutton(root, text="U16", variable=vanuse_var, value="U16").grid(row=3, column=1, sticky="w")
+  ttk.Radiobutton(root, text="U18", variable=vanuse_var, value="U18").grid(row=3, column=2, sticky="w")
+  ttk.Radiobutton(root, text="U20", variable=vanuse_var, value="U20").grid(row=3, column=3, sticky="w")
+
+  #kuupäev
+  ttk.Label(root, text="Võistluse kuupäev (YYYY-MM-DD):").grid(row=4, column=0, sticky="w", padx=5, pady=5)
+  ttk.Entry(root, textvariable=kuupäev_var, width=12).grid(row=4, column=1, sticky="w")
+
+  #võistluse tüüp
+  ttk.Label(root, text="Võistluse tüüp:").grid(row=5, column=0, sticky="w", padx=5, pady=5)
+  tüüp_combo = ttk.Combobox(root, textvariable=tüüp_var, values=["ühepäevane ühel väljakul", "ühepäevane kahel väljakul", "kahepäevane ühel väljakul", "kahepäevane kahel väljakul",], state="readonly", width=28)
+  tüüp_combo.grid(row=5, column=1, columnspan=3, sticky="w")
+
+  #algusajad
+  ttk.Label(root, text="Algusaeg I päeval (HH:MM):").grid(row=6, column=0, sticky="w", padx=5, pady=5)
+  ttk.Entry(root, textvariable=algus1_var, width=8).grid(row=6, column=1, sticky="w")
+
+  ttk.Label(root, text="Algusaeg II päeval (HH:MM):").grid(row=7, column=0, sticky="w", padx=5, pady=5)
+  ttk.Entry(root, textvariable=algus2_var, width=8).grid(row=7, column=1, sticky="w")
+
+  
   #ajakava genereerimise nupp
   def nupp_genereeri():
     try:
-      genereeri_ajakava_gui(vanuseklass=vanuse_var.get(), kuupäev=kuupäev_var.get(), võistluse_tüüp=tüüp_var.get(), algus1=algus1_var.get(), algus2=algus2_var.get(), kodu_võistkond_nimi=kodu_var.get())
+      indeksid = võistkonna_listbox.curselection()
+      if not indeksid:
+        raise ValueError("Palun vali listist 5 või 6 võistkonda.")
+      valitud_võistkonnad = [kõik_võistkonnad[i] for i in indeksid]
+      
+      genereeri_ajakava_gui(vanuseklass=vanuse_var.get(), kuupäev=kuupäev_var.get(), võistluse_tüüp=tüüp_var.get(), algus1=algus1_var.get(), algus2=algus2_var.get(), valitud_võistkonnad=valitud_võistkonnad, kodu_võistkond_nimi=kodu_var.get())
       messagebox.showinfo("Valmis", "Ajakava genereeritud (vaata terminali väljundit).")
     except Exception as e:
       messagebox.showerror("Viga", str(e))
-  ttk.Button(root, text="Genereeri ajakava", command=nupp_genereeri).grid(row=6, column=0, columnspan=4, pady=10)
+  ttk.Button(root, text="Genereeri ajakava", command=nupp_genereeri).grid(row=8, column=0, columnspan=2, pady=10)
 
   root.mainloop()
 
