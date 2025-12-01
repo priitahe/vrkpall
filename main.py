@@ -56,12 +56,14 @@ def loe_tsoon(tsoonifail, tsooni_nr):
 def märgi_koduvõistkond(võistkonnad, koduvõistkond, kodu_nr):
     # sisend: võistkondade nimede järjend, koduvõistkonna nimi, kodu võistkonna nr, nt 5
     # väljund: võistkondade järjendis on liigutatud koduvõistkonna nimi positsioonile kodu_nr
-    if võistkonnad[kodu_nr - 1] == koduvõistkond:
-        return võistkonnad
-    else:
+    nr = kodu_nr - 1
+    
+    try:
         i = võistkonnad.index(koduvõistkond)
-        võistkonnad[i] = võistkonnad[kodu_nr - 1]
-        võistkonnad[kodu_nr - 1] = koduvõistkond
+    except ValueError:
+        raise ValueError(f'Võistkonda {koduvõistkond} ei leitud!')
+    
+    võistkonnad[i], võistkonnad[nr] = (võistkonnad[nr], võistkonnad[i])
     return võistkonnad
 
 
@@ -119,13 +121,13 @@ def jaga_kaheks_väljakuks(võistluspaarid):
     võistlustabel = []
     mäng = []
     
-    for i, paar in enumerate(võistluspaarid):
+    for paar in võistluspaarid:
         mäng.append(paar)
-        if i % 2:
+        if len(mäng) == 2:
             võistlustabel.append(mäng)
             mäng = []
     
-    if len(mäng): # kuu on paaritu arv mänge siis lisa tühi mäng viimasele väljakule
+    if mäng: # kuu on paaritu arv mänge siis lisa tühi mäng viimasele väljakule
         mäng.append(('', ''))
         võistlustabel.append(mäng)
     
