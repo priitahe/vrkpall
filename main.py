@@ -1,9 +1,8 @@
-import math
 from pprint import pprint
 from datetime import datetime, timedelta
 
 tsoonifail = 'voistkonnad.txt'
-tsooni_nr = 9
+tsooni_nr = 1
 koduvõistkonna_nr = 5
 algusaeg = '15:00'
 algusaeg = datetime.strptime(algusaeg, "%H:%M")
@@ -38,18 +37,32 @@ def loe_tsoon(tsoonifail, tsooni_nr):
         on_tsoonis = False
         võistkonnad = []
         tsooni_linn = ''
+        
         for rida in f:
-            if not rida.strip():
+            rida = rida.strip()
+        
+            if not rida:  # kui on tühi rida
                 continue 
-            elif rida.startswith('#'):
-                (nr, linn) = rida.removeprefix('#').split(',')
-                if int(nr) == tsooni_nr:
+            
+            if rida.startswith('#'): # sellest reast algab tsoon
+                tsoon_lst = rida.removeprefix('#').split(',')
+                
+                if len(tsoon_lst) == 2:
+                    (nr, linn) = tsoon_lst
+                    nr = int(nr)
+                    linn = linn.strip
+                else:
+                    continue
+                
+                if nr == tsooni_nr:
                     on_tsoonis = True
-                    tsooni_linn = linn.strip()
+                    tsooni_linn = linn
                 else:
                     on_tsoonis = False
+
             elif on_tsoonis:
-                võistkonnad.append(rida.strip())
+                 võistkonnad.append(rida)
+        
         return (tsooni_linn, võistkonnad)
 
 
@@ -74,10 +87,10 @@ def loo_võistluspaarid(berger, võistkonnad):
     # väljund: võistkondade nimede paaride järjend
     
     n = len(võistkonnad)
-    Cn = n * (n - 1) // 2
+    Cnnnn = n * (n - 1) // 2
     
-    if Cn != len(berger):
-        print(f'Võistkondade arv ei klapi bergeri süsteemiga! berger {len(berger)}, võistkonnad {Cn} ')
+    if Cnnnn != len(berger):
+        print(f'Võistkondade arv ei klapi bergeri süsteemiga! berger {len(berger)}, võistkonnad {Cnnnn}')
         return -1
     
     võistlustabel = []
@@ -94,24 +107,33 @@ def loo_võistluspaarid(berger, võistkonnad):
 
 
 def kuva_võistlustabel(võistluspaarid, algusaeg, kakspäeva = True):
+    def aegstr():
+        return f'{t.hour:02d}:{t.minute:02d}'
+        
     print('1. päev')
     t = algusaeg
+    
     for i, paar in enumerate(võistluspaarid):
 
-        print(f'Mäng nr {i + 1}')
         if kakspäeva and i == len(võistluspaarid) // 2:
             print('2. päev')
             t = algusaeg
+
+        print(f'Mäng nr {i + 1}')
+        
             
-        if all(isinstance(x, list) for x in võistluspaarid):
+        if isinstance(paar, tuple) and len(paar) == 2:
+            (a, b) = paar
+            print(f'{aegstr()}, {i + 1}. {a} - {b}')
+
+        elif isinstance(paar, list) and len(paar) == 2:
             ((a, b), (c, d)) = paar
             print('1. väljak')
-            print(f'{t.hour:02d}:{t.minute:02d}, {i + 1}. {a} - {b}')
+            print(f'{aegstr()}, {i + 1}. {a} - {b}')
             print('2. väljak')
-            print(f'{t.hour:02d}:{t.minute:02d}, {i + 1}. {c} - {d}')
-        elif all(isinstance(x, tuple) for x in võistluspaarid):
-            (a, b) = paar
-            print(f'{t.hour:02d}:{t.minute:02d}, {i + 1}. {a} - {b}')
+            print(f'{aegstr()}, {i + 1}. {c} - {d}')
+        else:
+            raise ValueError(f'Vigane paar: {paar}')
         
         t = t + timedelta(hours=1, minutes=15)
 
@@ -133,7 +155,7 @@ def jaga_kaheks_väljakuks(võistluspaarid):
 
 (linn, võistkonnad) = loe_tsoon(tsoonifail, tsooni_nr)
 #märgi_koduvõistkond(võistkonnad, 'Rae SK I (M.S)', koduvõistkonna_nr)
-võistluspaarid = loo_võistluspaarid(berger6_2p2v, võistkonnad)
+võistluspaarid = loo_võistluspaarid(berger5_2p1v, võistkonnad)
 #kuva_võistlustabel(võistluspaarid, True)
 kuva_võistlustabel(jaga_kaheks_väljakuks(võistluspaarid), algusaeg, True)
 #kuva_võistlustabel(võistluspaarid, algusaeg, True)
