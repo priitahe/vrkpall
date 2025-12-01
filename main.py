@@ -2,7 +2,7 @@ from pprint import pprint
 from datetime import datetime, timedelta
 
 tsoonifail = 'voistkonnad.txt'
-tsooni_nr = 1
+tsooni_nr = 10
 koduvõistkonna_nr = 5
 algusaeg = '15:00'
 algusaeg = datetime.strptime(algusaeg, "%H:%M")
@@ -41,20 +41,20 @@ def loe_tsoon(tsoonifail, tsooni_nr):
         for rida in f:
             rida = rida.strip()
         
-            if not rida:  # kui on tühi rida
+            if not rida:  # kui on tühi rida, siis hõppa üle
                 continue 
             
             if rida.startswith('#'): # sellest reast algab tsoon
                 tsoon_lst = rida.removeprefix('#').split(',')
                 
-                if len(tsoon_lst) == 2:
+                if len(tsoon_lst) == 2: # kas tsooni rida on #nr,linn
                     (nr, linn) = tsoon_lst
                     nr = int(nr)
                     linn = linn.strip
                 else:
                     continue
                 
-                if nr == tsooni_nr:
+                if nr == tsooni_nr:  #
                     on_tsoonis = True
                     tsooni_linn = linn
                 else:
@@ -62,6 +62,9 @@ def loe_tsoon(tsoonifail, tsooni_nr):
 
             elif on_tsoonis:
                  võistkonnad.append(rida)
+        
+        if not võistkonnad:
+            raise ValueError(f'Tsooni ei leitud: {tsooni_nr}')
         
         return (tsooni_linn, võistkonnad)
 
@@ -87,7 +90,7 @@ def loo_võistluspaarid(berger, võistkonnad):
     # väljund: võistkondade nimede paaride järjend
     
     n = len(võistkonnad)
-    Cnnnn = n * (n - 1) // 2
+    Cnnnn = n * (n - 1) // 2    # siia tuleb kirjutada valem faktoriaalidega, kui n = 1, siis vastus on 0, kuid peaks olema 1
     
     if Cnnnn != len(berger):
         print(f'Võistkondade arv ei klapi bergeri süsteemiga! berger {len(berger)}, võistkonnad {Cnnnn}')
@@ -122,11 +125,11 @@ def kuva_võistlustabel(võistluspaarid, algusaeg, kakspäeva = True):
         print(f'Mäng nr {i + 1}')
         
             
-        if isinstance(paar, tuple) and len(paar) == 2:
+        if isinstance(paar, tuple) and len(paar) == 2: # kontrollib kas element on ennik (a, b)
             (a, b) = paar
             print(f'{aegstr()}, {i + 1}. {a} - {b}')
 
-        elif isinstance(paar, list) and len(paar) == 2:
+        elif isinstance(paar, list) and len(paar) == 2: # kontrollib kas element on järjend
             ((a, b), (c, d)) = paar
             print('1. väljak')
             print(f'{aegstr()}, {i + 1}. {a} - {b}')
@@ -138,6 +141,8 @@ def kuva_võistlustabel(võistluspaarid, algusaeg, kakspäeva = True):
         t = t + timedelta(hours=1, minutes=15)
 
 def jaga_kaheks_väljakuks(võistluspaarid):
+    # grupeerib järjendi elemendid paarikaupa, tagastab järjendi, mille elemendid on
+    # kahemelemendilised järjendid
     võistlustabel = []
     mäng = []
     
