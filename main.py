@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 
 tsoonifail = 'voistkonnad.txt'
 tsooni_nr = 9
-# tegin siis ühe kommentaari
 koduvõistkonna_nr = 5
 algusaeg = '15:00'
 algusaeg = datetime.strptime(algusaeg, "%H:%M")
