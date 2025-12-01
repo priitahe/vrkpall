@@ -73,25 +73,23 @@ def loo_võistluspaarid(berger, võistkonnad):
     # võistkonnad - võistkondade nimede järjend
     # väljund: võistkondade nimede paaride järjend
     
-    võistlustabel = []
+    n = len(võistkonnad)
+    Cn = n * (n - 1) // 2
     
-    kombinatsioonide_arv = math.perm(len(võistkonnad), 2) / math.factorial(2)
-    try:
-        if  kombinatsioonide_arv == len(berger):
- 
-             for (a, b) in berger:
-                paar = (võistkonnad[a - 1], võistkonnad[b - 1])
-                võistlustabel.append(paar)
-
-        else:
-            raise ValueError('Võistkondade arv ei klapi bergeri süsteemiga!')
-    except ValueError as e:
-        print(e)
+    if Cn != len(berger):
+        print(f'Võistkondade arv ei klapi bergeri süsteemiga! berger {len(berger)}, võistkonnad {Cn} ')
         return -1
-    except IndexError as e:
-        print(a,b)
-        return -1
+    
+    võistlustabel = []
 
+    for (a, b) in berger:
+        try:
+            paar = (võistkonnad[a - 1], võistkonnad[b - 1])
+        except IndexError:
+            raise(f'Vigased indeksid {a} ja {b}')
+        
+        võistlustabel.append(paar)
+    
     return võistlustabel
 
 
