@@ -3,6 +3,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pprint import pprint
 from datetime import datetime, timedelta
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, PageBreak
+from reportlab.lib import colors
 
 # BERGERI TABELID (kasutame 5_2p1v ja 6_2p1v)
 
@@ -693,7 +696,27 @@ def loo_gui():
 
     root.mainloop()
 
+def loo_pdf(võistlustabelid):
+    # Create a PDF
+    pdf = SimpleDocTemplate("võistlustabelid.pdf", pagesize=A4)
 
+    pdftabelid = []
+    for i, vtabel in enumerate(võistlustabelid):
+        pdftabel = Table(vtabel, colWidths=[30, 275, 200, 50], rowHeights=[60] * len(vtabel))
+        pdftabel.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+            ("FONT", (0, 0), (-1, -1), "Helvetica"),
+        ]))
+        pdftabelid.append(pdftabel)
+        if i != len(võistlustabelid) - 1:
+            pdftabelid.append(PageBreak())
+
+    for t in pdftabelid:
+        pdf.build(pdftabelid)
 # --------------------------------
 # PROGRAMMI KÄIVITAMINE
 # --------------------------------
@@ -735,3 +758,4 @@ if __name__ == "__main__":
     print()
     võistlustabelid = loo_võistlustabelid_järjend(võistluspaarid, ['15:00', '11:00'])
     pprint(võistlustabelid)
+    loo_pdf(võistlustabelid)
