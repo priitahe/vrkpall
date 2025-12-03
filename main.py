@@ -1,15 +1,8 @@
-from pprint import pprint
-from datetime import datetime, timedelta
+import random
 import tkinter as tk
 from tkinter import ttk, messagebox
-import random
-
-tsoonifail = 'voistkonnad.txt'
-koduvõistkonna_nr = 5  # mitmendaks nihutatakse koduvõistkond (nt 5. positsioonile)
-
-algusaeg_str = '15:00'
-algusaeg = datetime.strptime(algusaeg_str, "%H:%M")
-
+from pprint import pprint
+from datetime import datetime, timedelta
 
 # BERGERI TABELID (kasutame 5_2p1v ja 6_2p1v)
 
@@ -44,55 +37,66 @@ berger6_2p2v = [
 
 def loe_tsoon(tsoonifail, tsooni_nr):
     """
-    Loeb valitud tsooni võistkonnad failist.
-    Tsooni algus: rida kujul '#10, Tallinn'
-    Võistkonnad: järgmised read kuni järgmise tsoonini või faili lõpuni.
-    Eemaldab eest võimalikud numbrid stiilis '1. ', '2) ' jne.
+    Loeb failist võistkondade nimed valitud tsoonis.
+    
+    Args:
+        tsoonifail (str): Failinimi võistkondade nimedega.
+            Tsooni algus on rida kujul '#10, Tallinn'.
+            Järgmised read kuni järgmise tsoonini või faili lõpuni
+            kuuluvad sellesse tsooni.
+        tsooni_nr (int): Tsooni number.
+        
+    Returns:
+        tuple[str, list[str]]:
+            Paar (str, list[str]), kus
+            - esimene element on linna nimi (str).
+            - teine element võistkondade nimed (list[str]).
+        
+    Raises:
+        ValueError: Kui tsooni_nr vastavat tsooni failis ei ole.
+    
     """
     with open(tsoonifail, encoding='utf8') as f:
+        def tsooni_päis(tsooni_str):
+            """
+                Loeb stringist tsooni numbri ja tsoonivõistluse linna.
+            """
+            (nr, linn) = tsooni_str
+            return int(nr), linn.strip()
+        
         on_tsoonis = False
         võistkonnad = []
-        tsooni_linn = ''
         
         for rida in f:
             rida = rida.strip()
             if not rida:
                 continue
             
+            # Tsooni päis. Kui võimaliks alusta võistkondade järjendi loomist
             if rida.startswith('#'):
-                # tsooni päis: #10, Tallinn
+                if on_tsoonis:
+                    break
+                
+                # Töötle tsooni rida
                 tsoon_lst = rida.removeprefix('#').split(',')
-                if len(tsoon_lst) == 2:
-                    (nr, linn) = tsoon_lst
-                    nr = int(nr)
-                    linn = linn.strip()
-                else:
-                    continue
-
+                nr, linn = tsooni_päis(tsoon_lst)
                 if nr == tsooni_nr:
                     on_tsoonis = True
-                    tsooni_linn = linn
-                else:
-                    on_tsoonis = False
 
             elif on_tsoonis:
-                # eemaldame numbri ja sümbolid algusest, kui neid on
-                # nt "1. Rae SK" -> "Rae SK"
-                puhastatud = rida.lstrip("0123456789. )").strip()
-                if puhastatud:
-                    võistkonnad.append(puhastatud)
+                võistkonnad.append(rida)
         
         if not võistkonnad:
-            raise ValueError(f'Tsooni {tsooni_nr} ei leitud või selles pole võistkondi.')
+            raise ValueError(f'Tsooni {tsooni_nr} ei leitud või tsoonis pole võistkondi.')
         
-        return tsooni_linn, võistkonnad
-
-
+        return linn, võistkonnad
 
 # TURNIIRI LOOGIKA
 
-def märgi_koduvõistkond(võistkonnad, koduvõistkond, kodu_nr):
-    # liigutab koduvõistkonna nime etteantud positsioonile (kodu_nr)
+def liiguta_koduvõistkond(võistkonnad, koduvõistkond, kodu_nr):
+    """
+        Liigutab koduvõistkonna nime antud positsiooni.    
+    """
     nr = kodu_nr - 1
     
     try:
@@ -105,30 +109,110 @@ def märgi_koduvõistkond(võistkonnad, koduvõistkond, kodu_nr):
 
 
 def loo_võistluspaarid(berger, võistkonnad):
-    # sisend:
-    #   berger - võistluspaaride järjend (indeksite kaupa)
-    #   võistkonnad - võistkondade nimede järjend
-    # väljund: nimede paaride järjend
+    """
+        Moodustab võistkondade paarid Bergeri süsteemi alusel.
+        
+        Args:
+            berger (list[tuple(int, int)]): Arvupaaride järjend, kus igas paaris on
+                on indeksid + 1 võistkondade nimede järjendis.
+            võistkonnad (list[str]): Võistkondade nimed.
+            
+        Returns:
+            list[tuple(str, str)]
+                list(Paar (str, str)): Võistkondade nimede paarid, kes
+                    omavahel võistlevad
+            
+    """
     
-    n = len(võistkonnad)
-    Cnnnn = n * (n - 1) // 2    # kontroll, kas mängude arv klapib
-
-    if Cnnnn != len(berger):
-        print(f'Võistkondade arv ei klapi Bergeri süsteemiga! berger {len(berger)}, võistkonnad {Cnnnn}')
+    # kontrolli, kas mängude arv bergeri süsteemis klapib võistkondade 
+    n_võistkonnad = len(võistkonnad)
+    Cn_võistkonnad = n_võistkonnad * (n_võistkonnad - 1) // 2    
+    if Cn_võistkonnad != len(berger):
+        print(f'Võistkondade arv ei klapi Bergeri süsteemiga! berger {len(berger)}, võistkonnad {Cn_võistkonnad}')
         return -1
     
-    võistlustabel = []
-
+    # moodusta võistlustabel
+    võistluspaarid = []
     for (a, b) in berger:
         try:
             paar = (võistkonnad[a - 1], võistkonnad[b - 1])
         except IndexError:
             raise ValueError(f'Vigased indeksid {a} ja {b}')
         
-        võistlustabel.append(paar)
+        võistluspaarid.append(paar)
     
-    return võistlustabel
+    return võistluspaarid
 
+
+def jaga_kahele_väljakule(võistluspaarid):
+    """
+        Paaritud võistluspaarid esimesele väljakule ja paaris teisele väljakule.
+        
+        Args:
+        
+        Returns:
+    # võtab: [paar1, paar2, paar3, ...]
+    # teeb: [[paar1, paar2], [paar3, paar4], ...]
+
+    # kui paaritu arv mänge, lisa viimane tühja paariga
+    """
+    if len(võistluspaarid) % 2:
+        võistluspaarid.append(('', ''))
+    
+    paaritud = [võistluspaarid[i] for i in range (0, len(võistluspaarid), 2)]
+    paaris = [võistluspaarid[i] for i in range (1, len(võistluspaarid), 2)]
+    
+    return list(zip(paaritud, paaris))
+
+
+
+def loo_võistlustabelid_järjend(võistluspaarid, algusajad, mängu_kestus=timedelta(hours=1, minutes=15)):
+    """
+        Moodustab võistlustabeli koos päisega
+        võistlustabel = [
+                            ['Jrk', '1. päev', 'KOHTUNIKUD', 'AEG'],
+                            [1, 'võistkond A - võistkond B', 'Peeter', '11:00'],
+                            [2, 'võistkond C - võistkond D', 'Pärtel', '12:00'],
+                            [3, 'võistkond E - võistkond F', 'Kaarel', '13:00'],
+                            ....
+        ]
+        võistlustabelid = [
+                            võistlustabel,
+                            võistlustabel,
+                            võistlustabel,
+        ]
+    """
+    def algusaeg(algusaeg_str):
+        # loob aja objekti
+        return datetime.strptime(algusaeg_str, "%H:%M")
+    
+    def aegstr(t):
+        # loob aja stringi vormis HH:MM
+        return f'{t.hour:02d}:{t.minute:02d}'
+      
+      
+    for i, aeg in enumerate(algusajad):
+        algusajad[i] = algusaeg(aeg)
+        
+    päevad  = []
+    if len(algusajad) == 2:
+        päevad.append(võistluspaarid[:len(võistluspaarid) // 2])
+        päevad.append(võistluspaarid[len(võistluspaarid) // 2:])
+    else:
+        päevad = võistluspaarid
+
+    võistlustabelid = []
+
+    for pi, päev in enumerate(päevad, start=1):
+        for vi, väljak in enumerate(zip(*päev), start=1):
+            võistlustabel = [['Jrk', f'{pi}. päev/{vi}. väljak', 'KOHTUNIKUD', 'AEG']]
+            t = algusajad[pi - 1]        
+            for i, (a, b) in enumerate(väljak, start=1):
+                võistlustabel.append([i, f'{a} - {b}', '', f'{aegstr(t)}'])
+                t = t + mängu_kestus
+            võistlustabelid.append(võistlustabel)
+            
+    return võistlustabelid
 
 def kuva_võistlustabel(võistluspaarid, algusaeg1,
                         kakspäeva=True, algusaeg2=None,
@@ -164,6 +248,32 @@ def kuva_võistlustabel(võistluspaarid, algusaeg1,
             raise ValueError(f'Vigane paar: {paar}')
         
         t = t + mängu_kestus
+        
+def teisenda_tsoonist_tabeliks(võistkonnad):
+    """
+    Võtab sisse listi võistkondadest tsooni järjekorras (1.,2.,3.,...)
+    ja tagastab listi turniiri tabeli järjekorras vastavalt kaardistusele:
+      kui 6 võistkonda: {1:5, 2:1, 3:2, 4:3, 5:4, 6:6}
+      kui 5 võistkonda: {1:5, 2:1, 3:2, 4:3, 5:4}
+    (positsioonid 1-põhised)
+    """
+    n = len(võistkonnad)
+    if n == 6:
+        kaardistus = {1:5, 2:1, 3:2, 4:3, 5:4, 6:6}
+    elif n == 5:
+        kaardistus = {1:5, 2:1, 3:2, 4:3, 5:4}
+    else:
+        raise ValueError("Toetatud ainult 5 või 6 võistkonda selle teisenduse jaoks.")
+
+    uus = [None] * n
+    for tsoon_pos in range(1, n+1):
+        siht_pos = kaardistus[tsoon_pos]  # 1-põhine
+        uus[siht_pos - 1] = võistkonnad[tsoon_pos - 1]
+
+    if any(x is None for x in uus):
+        raise RuntimeError("Teisenduse viga — mõni koht jäi täitmata.")
+    return uus
+
 
 def kontrolli_järjestikuseid(võistluspaarid, kahepäevane):
     
@@ -201,24 +311,6 @@ def kontrolli_järjestikuseid(võistluspaarid, kahepäevane):
 
     return rikkumised
 
-
-def jaga_kaheks_väljakuks(võistluspaarid):
-    # võtab: [paar1, paar2, paar3, ...]
-    # teeb: [[paar1, paar2], [paar3, paar4], ...]
-    võistlustabel = []
-    mäng = []
-    
-    for paar in võistluspaarid:
-        mäng.append(paar)
-        if len(mäng) == 2:
-            võistlustabel.append(mäng)
-            mäng = []
-    
-    if mäng:  # kui paaritu arv mänge, lisa viimane tühja paariga
-        mäng.append(('', ''))
-        võistlustabel.append(mäng)
-    
-    return võistlustabel
 
 def sea_koduvõistkond_väljakule_1(tabel, koduvõistkond):
     """
@@ -538,6 +630,13 @@ def loo_gui():
                     raise ValueError("Tsooni number peab olema täisarv 1–10.")
                 linn, võistkonnad = loe_tsoon(tsoonifail, tsooni_nr)
                 asukoht = f"Tsoon {tsooni_nr}, {linn}"
+                
+                 # kui loeti tsooni järjekord, teisendame selle turniiri tabeli järjekorraks
+                 # vastavalt kaardistusele 1->5, 2->1, 3->2, 4->3, 5->4, 6->6 (5- ja 6-võistkonna lahendused)
+                try:
+                    võistkonnad = teisenda_tsoonist_tabeliks(võistkonnad)
+                except Exception as e:
+                    raise ValueError(f"Tsooni → turniiri teisendus ebaõnnestus: {e}")
             else:
                 # loe võistkonnad käsitsi sisestatud tekstist
                 tekst = sisestus_box.get("1.0", tk.END).strip()
@@ -600,4 +699,39 @@ def loo_gui():
 # --------------------------------
 
 if __name__ == "__main__":
-    loo_gui()
+    #loo_gui()
+    
+    tsoonifail = 'voistkonnad.txt'
+    tsooni_nr = 1
+    koduvõistkonna_nr = 5  # mitmendaks nihutatakse koduvõistkond (nt 5. positsioonile)
+    algusaeg_str = '15:00'
+
+    linn, võistkonnad = loe_tsoon(tsoonifail, tsooni_nr)
+    print('Loen', tsoonifail, f'tsooni_nr: {tsooni_nr}')
+    print(linn)
+    pprint(võistkonnad)
+    
+    print()
+    print(f'Liigutan koduvõistkonna positsioonile {koduvõistkonna_nr}')
+    liiguta_koduvõistkond(võistkonnad, 'Narva SK Energia/SK Galla I', koduvõistkonna_nr)
+    pprint(võistkonnad)
+    
+    print()
+    print('Loon võistluspaarid')
+    #võistluspaarid = loo_võistluspaarid(berger6_2p1v, võistkonnad)
+    võistluspaarid = loo_võistluspaarid(berger6_2p2v, võistkonnad)
+    pprint(võistluspaarid)
+    print(f'len: {len(võistluspaarid)}')
+    
+    print()
+    print(f'Jagan võistluspaarid kahele väljakule')
+    #pprint(võistluspaarid[:len(võistluspaarid) // 2])
+    #pprint(võistluspaarid[len(võistluspaarid) // 2 :])
+    
+    võistluspaarid = jaga_kahele_väljakule(võistluspaarid)
+    pprint(võistluspaarid)
+    print(f'Mängude arv {len(võistluspaarid)}')
+    
+    print()
+    võistlustabelid = loo_võistlustabelid_järjend(võistluspaarid, ['15:00', '11:00'])
+    pprint(võistlustabelid)
