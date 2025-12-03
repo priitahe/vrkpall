@@ -87,6 +87,30 @@ def loe_tsoon(tsoonifail, tsooni_nr):
         
         return tsooni_linn, võistkonnad
 
+def teisenda_tsoonist_tabeliks(võistkonnad):
+    """
+    Võtab sisse listi võistkondadest tsooni järjekorras (1.,2.,3.,...)
+    ja tagastab listi turniiri tabeli järjekorras vastavalt kaardistusele:
+      kui 6 võistkonda: {1:5, 2:1, 3:2, 4:3, 5:4, 6:6}
+      kui 5 võistkonda: {1:5, 2:1, 3:2, 4:3, 5:4}
+    (positsioonid 1-põhised)
+    """
+    n = len(võistkonnad)
+    if n == 6:
+        kaardistus = {1:5, 2:1, 3:2, 4:3, 5:4, 6:6}
+    elif n == 5:
+        kaardistus = {1:5, 2:1, 3:2, 4:3, 5:4}
+    else:
+        raise ValueError("Toetatud ainult 5 või 6 võistkonda selle teisenduse jaoks.")
+
+    uus = [None] * n
+    for tsoon_pos in range(1, n+1):
+        siht_pos = kaardistus[tsoon_pos]  # 1-põhine
+        uus[siht_pos - 1] = võistkonnad[tsoon_pos - 1]
+
+    if any(x is None for x in uus):
+        raise RuntimeError("Teisenduse viga — mõni koht jäi täitmata.")
+    return uus
 
 
 # TURNIIRI LOOGIKA
@@ -538,6 +562,13 @@ def loo_gui():
                     raise ValueError("Tsooni number peab olema täisarv 1–10.")
                 linn, võistkonnad = loe_tsoon(tsoonifail, tsooni_nr)
                 asukoht = f"Tsoon {tsooni_nr}, {linn}"
+                
+                 # kui loeti tsooni järjekord, teisendame selle turniiri tabeli järjekorraks
+                 # vastavalt kaardistusele 1->5, 2->1, 3->2, 4->3, 5->4, 6->6 (5- ja 6-võistkonna lahendused)
+                try:
+                    võistkonnad = teisenda_tsoonist_tabeliks(võistkonnad)
+                except Exception as e:
+                    raise ValueError(f"Tsooni → turniiri teisendus ebaõnnestus: {e}")
             else:
                 # loe võistkonnad käsitsi sisestatud tekstist
                 tekst = sisestus_box.get("1.0", tk.END).strip()
