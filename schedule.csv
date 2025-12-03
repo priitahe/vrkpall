@@ -1,0 +1,16 @@
+päev;aeg;mäng_nr;väljak;kodumeeskond;võõrameeskond
+1;10:00;1;1;Selver Tallinn III (G-K.T.);Rae spordikool I (M.S.)
+1;10:00;1;2;Selver Tallinn V (I.B.);Rae Spordikool II (K.P.)
+1;12:00;2;1;Rae spordikool I (M.S.);Selver Tallinn V (I.B.)
+1;12:00;2;2;Tallinna SS Kalev (S.T.);Keila Võrkpallikool
+1;14:00;3;1;Tallinna SS Kalev (S.T.);Selver Tallinn III (G-K.T.)
+1;14:00;3;2;Keila Võrkpallikool;Rae Spordikool II (K.P.)
+1;16:00;4;1;Rae Spordikool II (K.P.);Rae spordikool I (M.S.)
+1;16:00;4;2;Selver Tallinn III (G-K.T.);Selver Tallinn V (I.B.)
+2;10:00;5;1;Selver Tallinn V (I.B.);Tallinna SS Kalev (S.T.)
+2;10:00;5;2;Selver Tallinn III (G-K.T.);Keila Võrkpallikool
+2;12:00;6;1;Keila Võrkpallikool;Rae spordikool I (M.S.)
+2;12:00;6;2;Tallinna SS Kalev (S.T.);Rae Spordikool II (K.P.)
+2;14:00;7;1;Rae spordikool I (M.S.);Tallinna SS Kalev (S.T.)
+2;14:00;7;2;Selver Tallinn V (I.B.);Keila Võrkpallikool
+2;16:00;8;1;Rae Spordikool II (K.P.);Selver Tallinn III (G-K.T.)
