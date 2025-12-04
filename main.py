@@ -531,7 +531,7 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
 
         try:
 
-            messagebox.showinfo("Valmis", "Ajakava genereeritud (vaata terminali väljundit).")
+            messagebox.showinfo("Valmis", "Salvestasin ajakava faili 'võistlustabelid.pdf'")
         except Exception as e:
             messagebox.showerror("Viga", str(e))
     
@@ -539,7 +539,7 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
         nonlocal võistlustabelid
         pprint(võistlustabelid)
         output = io.StringIO()
-        writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(output, delimiter='\t', lineterminator='\n', quoting=csv.QUOTE_MINIMAL)
         for tabel in võistlustabelid:
             for rida in tabel:
                 writer.writerow(rida)
@@ -548,8 +548,9 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
         root.clipboard_clear()
         root.clipboard_append(csv_string)
         root.update()  # now it’s in clipboard
+        pprint(csv_string)
     
-    ttk.Button(root, text="Genereeri ajakava", command=nupp_genereeri).grid(
+    ttk.Button(root, text="Genereeri ajakava PDF", command=nupp_genereeri).grid(
         row=10, column=0, pady=10, sticky="WE")
     ttk.Button(root, text="Kopeeri lõikelauale", command=kopeeri_lõikelauale).grid(
         row=10, column=1, pady=10, sticky="WE")
