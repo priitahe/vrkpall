@@ -1,3 +1,5 @@
+import csv
+import io
 import tkinter as tk
 from tkinter import ttk, messagebox
 from pprint import pprint
@@ -299,12 +301,14 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
             sisestus_box.insert('1.0', võistkonnad_käsitsi)
     
     võistkonnad_käsitsi = ''
+    võistlustabelid = []
     root = tk.Tk()
     root.title("Võrkpalli võistluse ajakava")
     root.configure(bg="#2e2e2e")
     style = ttk.Style()
     style.theme_use('clam')   
     style.configure("TLabel", background="#2e2e2e", foreground="#f0f0f0")
+    style.configure("TFrame", background="#2e2e2e", foreground="#f0f0f0")
     style.configure("TButton", background="#3a3a3a", foreground="#f0f0f0")
     style.configure("TRadiobutton", background="#2e2e2e", foreground="#f0f0f0")
     style.configure("TRadiobutton", background="#2e2e2e", foreground="#f0f0f0")
@@ -356,12 +360,13 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     ttk.Label(root, text="Võistkondade allikas:").grid(
         row=0, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Radiobutton(root, text="Loe tsoonifailist", variable=allikas_var, value="tsoon", command=on_click).grid(
-        row=0, column=1, sticky="w"
-    )
-    ttk.Radiobutton(root, text="Sisesta käsitsi", variable=allikas_var, value="käsitsi", command=on_click).grid(
-        row=0, column=2, sticky="w"
-    )
+    
+    tsoon_frame = ttk.Frame(root)
+    tsoon_frame.grid(row=0, column=1, padx=0, pady=5, sticky="we")
+    ttk.Radiobutton(tsoon_frame, text="Loe tsoonifailist", variable=allikas_var, value="tsoon", command=on_click).grid(
+        row=0, column=0, sticky="w")
+    ttk.Radiobutton(tsoon_frame, text="Sisesta käsitsi", variable=allikas_var, value="käsitsi", command=on_click).grid(
+        row=0, column=1, sticky="w")
 
     # tsooni number
     ttk.Label(root, text="Tsooni number (1–10):").grid(
@@ -398,25 +403,28 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
 
     # vanuseklass
     ttk.Label(root, text="Vanuseklass:").grid(row=4, column=0, sticky="w", padx=5, pady=5)
-    ttk.Radiobutton(root, text="U16", variable=vanuse_var, value="U16").grid(row=4, column=1, sticky="w", padx=5, pady=5)
-    ttk.Radiobutton(root, text="U18", variable=vanuse_var, value="U18").grid(row=4, column=2, sticky="w", padx=5, pady=5)
-    ttk.Radiobutton(root, text="U20", variable=vanuse_var, value="U20").grid(row=4, column=3, sticky="w", padx=5, pady=5)
+    vanuseklass_frame = ttk.Frame(root)
+    vanuseklass_frame.grid(row=4, column=1, padx=0, pady=5, sticky="we")
+    
+    ttk.Radiobutton(vanuseklass_frame, text="U16", variable=vanuse_var, value="U16").grid(row=0, column=0, padx=5, pady=5)
+    ttk.Radiobutton(vanuseklass_frame, text="U18", variable=vanuse_var, value="U18").grid(row=0, column=1, padx=5, pady=5)
+    ttk.Radiobutton(vanuseklass_frame, text="U20", variable=vanuse_var, value="U20").grid(row=0, column=2, padx=5, pady=5)
     
     # kuupäev
     ttk.Label(root, text="Võistluse kuupäev (YYYY-MM-DD):").grid(
         row=5, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=kuupäev_var, style="Flat.TEntry", width=15).grid(row=5, column=1, sticky="w")
+    ttk.Entry(root, textvariable=kuupäev_var, style="Flat.TEntry", width=15).grid(row=5, column=1, sticky="WE")
 
     # võistluse tüüp
-    ttk.Label(root, text="Võistluse tüüp:").grid(row=6, column=0, sticky="w", padx=5, pady=5)
+    ttk.Label(root, text="Võistluse tüüp:").grid(row=6, column=0, sticky="WE", padx=5, pady=5)
     tüüp_combo = ttk.Combobox(
         root,
         textvariable=tüüp_var,
         values = list(võistluse_tüübid.keys()),
         state="readonly",
         style="Flat.TCombobox",
-        width=28
+        width=32
     )
     tüüp_combo.grid(row=6, column=1, sticky="w")
 
@@ -424,18 +432,18 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     ttk.Label(root, text="Algusaeg I päeval (HH:MM):").grid(
         row=7, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=algus1_var, style="Flat.TEntry", width=8).grid(row=7, column=1, sticky="w")
+    ttk.Entry(root, textvariable=algus1_var, style="Flat.TEntry", width=8).grid(row=7, column=1, sticky="WE")
 
     ttk.Label(root, text="Algusaeg II päeval (HH:MM):").grid(
         row=8, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=algus2_var, style="Flat.TEntry", width=8).grid(row=8, column=1, sticky="w")
+    ttk.Entry(root, textvariable=algus2_var, style="Flat.TEntry", width=8).grid(row=8, column=1, sticky="WE")
 
     # koduvõistkond
     ttk.Label(root, text="Koduvõistkonna nimi:").grid(
         row=9, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=kodu_var, style="Flat.TEntry", width=30).grid(row=9, column=1, columnspan=2, sticky="w")
+    ttk.Entry(root, textvariable=kodu_var, style="Flat.TEntry", width=30).grid(row=9, column=1, sticky="WE")
 
 
     allikas = allikas_var.get()
@@ -450,6 +458,7 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
 
         
     def nupp_genereeri():
+        nonlocal võistlustabelid
         allikas = allikas_var.get()
         vanuseklass=vanuse_var.get()
         kuupäev=kuupäev_var.get()
@@ -525,12 +534,25 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
             messagebox.showinfo("Valmis", "Ajakava genereeritud (vaata terminali väljundit).")
         except Exception as e:
             messagebox.showerror("Viga", str(e))
+    
+    def kopeeri_lõikelauale():
+        nonlocal võistlustabelid
+        pprint(võistlustabelid)
+        output = io.StringIO()
+        writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+        for tabel in võistlustabelid:
+            for rida in tabel:
+                writer.writerow(rida)
+        csv_string = output.getvalue()
+        output.close()
+        root.clipboard_clear()
+        root.clipboard_append(csv_string)
+        root.update()  # now it’s in clipboard
+    
     ttk.Button(root, text="Genereeri ajakava", command=nupp_genereeri).grid(
-        row=10, column=0, pady=10, sticky="WE"
-    )
-    ttk.Button(root, text="Kopeeri lõikelauale", command=nupp_genereeri).grid(
-        row=10, column=1, pady=10, sticky="WE"
-    )
+        row=10, column=0, pady=10, sticky="WE")
+    ttk.Button(root, text="Kopeeri lõikelauale", command=kopeeri_lõikelauale).grid(
+        row=10, column=1, pady=10, sticky="WE")
 
     root.mainloop()
 
