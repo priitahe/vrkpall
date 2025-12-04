@@ -6,6 +6,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, PageBreak
 from reportlab.lib import colors
 
+
 # BERGERI TABELID
 
 berger = {
@@ -300,7 +301,55 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     võistkonnad_käsitsi = ''
     root = tk.Tk()
     root.title("Võrkpalli võistluse ajakava")
+    root.configure(bg="#2e2e2e")
+    style = ttk.Style()
+    style.theme_use('clam')   
+    style.configure("TLabel", background="#2e2e2e", foreground="#f0f0f0")
+    style.configure("TButton", background="#3a3a3a", foreground="#f0f0f0")
+    style.configure("TRadiobutton", background="#2e2e2e", foreground="#f0f0f0")
+    style.configure("TRadiobutton", background="#2e2e2e", foreground="#f0f0f0")
 
+
+    style.configure(
+        "Flat.TEntry",
+        relief = "flat",
+        borderwidth=0,
+        fieldbackground="#3a3a3a",
+        foreground="#f0f0f0",
+        background="#3a3a3a",
+        insertbackground="#f0f0f0")
+    style.configure("Flat.TCombobox",
+        relief="flat",
+        fieldbackground="#3a3a3a",
+        background="#5a5a5a",
+        foreground="#f0f0f0",
+        arrowcolor="#f0f0f0")
+    style.configure(
+        "Flat.TSpinbox",
+        relief="flat",
+        borderwidth=0,
+        padding=1,
+        fieldbackground="#3a3a3a",
+        background="#5a5a5a",
+        foreground="#f0f0f0",
+        arrowsize=15
+    )
+    
+    style.map("TButton",
+          background=[('active', '#505050')],
+          foreground=[('active', '#ffffff')])
+    style.map("TRadiobutton",
+          background=[('active', '#3a3a3a')],
+          foreground=[('active', '#ffffff')])
+    style.map("Flat.TCombobox",
+              fieldbackground=[('readonly', '#3a3a3a')],
+              background=[('active', '#505050')],
+              foreground=[('disabled', '#888')],
+              arrowcolor=[('active', '#ffffff')])
+    style.map(
+        "Flat.TSpinbox",
+        arrowcolor=[('active', 'green'), ('!active', 'lightgreen')]
+    )
     # --- ALLIKAVALIK: tsoonist vs käsitsi ---
     allikas_var = tk.StringVar(value="tsoon")
 
@@ -318,15 +367,26 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     ttk.Label(root, text="Tsooni number (1–10):").grid(
         row=1, column=0, sticky="w", padx=5, pady=5
     )
-    tsoon_spin = tk.Spinbox(root, from_=1, to=10, width=5, command=on_spin)
+    tsoon_spin = ttk.Spinbox(root, from_=1, to=10, style="Flat.TSpinbox", width=5, command=on_spin)
     tsoon_spin.grid(row=1, column=1, sticky="w")
+    tsoon_spin.set(1)
 
     # käsitsi võistkondade sisestus
     ttk.Label(root, text="Võistkonnad (üks rida = üks võistkond):").grid(
         row=2, column=0, columnspan=3, sticky="w", padx=5, pady=5
     )
-    sisestus_box = tk.Text(root, height=6, width=50)
-    sisestus_box.grid(row=3, column=0, columnspan=3, padx=5, pady=5)
+    sisestus_box = tk.Text(root,
+                           height=6,
+                           bg="#3a3a3a",
+                           fg="#f0f0f0",
+                           insertbackground="#f0f0f0",
+                           selectbackground="#505050",
+                           selectforeground="#ffffff",
+                           relief="flat",
+                           borderwidth=0,
+                           highlightthickness=0,
+                           width=50)
+    sisestus_box.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
     # Tkinteri muutujad
     vanuse_var = tk.StringVar(value="U16")
@@ -337,16 +397,16 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     kodu_var = tk.StringVar(value="")  # koduvõistkonna nimi (vaba tekst)
 
     # vanuseklass
-    ttk.Label(root, relief="solid", text="Vanuseklass:").grid(row=4, column=0, sticky="w", padx=5, pady=5)
+    ttk.Label(root, text="Vanuseklass:").grid(row=4, column=0, sticky="w", padx=5, pady=5)
     ttk.Radiobutton(root, text="U16", variable=vanuse_var, value="U16").grid(row=4, column=1, sticky="w", padx=5, pady=5)
     ttk.Radiobutton(root, text="U18", variable=vanuse_var, value="U18").grid(row=4, column=2, sticky="w", padx=5, pady=5)
-    ttk.Radiobutton(root, text="U20", variable=vanuse_var, value="U20").grid(row=4, column=3, sticky="w", padx=20, pady=5)
+    ttk.Radiobutton(root, text="U20", variable=vanuse_var, value="U20").grid(row=4, column=3, sticky="w", padx=5, pady=5)
     
     # kuupäev
     ttk.Label(root, text="Võistluse kuupäev (YYYY-MM-DD):").grid(
         row=5, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=kuupäev_var, width=15).grid(row=5, column=1, sticky="w")
+    ttk.Entry(root, textvariable=kuupäev_var, style="Flat.TEntry", width=15).grid(row=5, column=1, sticky="w")
 
     # võistluse tüüp
     ttk.Label(root, text="Võistluse tüüp:").grid(row=6, column=0, sticky="w", padx=5, pady=5)
@@ -355,6 +415,7 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
         textvariable=tüüp_var,
         values = list(võistluse_tüübid.keys()),
         state="readonly",
+        style="Flat.TCombobox",
         width=28
     )
     tüüp_combo.grid(row=6, column=1, sticky="w")
@@ -363,18 +424,18 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     ttk.Label(root, text="Algusaeg I päeval (HH:MM):").grid(
         row=7, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=algus1_var, width=8).grid(row=7, column=1, sticky="w")
+    ttk.Entry(root, textvariable=algus1_var, style="Flat.TEntry", width=8).grid(row=7, column=1, sticky="w")
 
     ttk.Label(root, text="Algusaeg II päeval (HH:MM):").grid(
         row=8, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=algus2_var, width=8).grid(row=8, column=1, sticky="w")
+    ttk.Entry(root, textvariable=algus2_var, style="Flat.TEntry", width=8).grid(row=8, column=1, sticky="w")
 
     # koduvõistkond
     ttk.Label(root, text="Koduvõistkonna nimi:").grid(
         row=9, column=0, sticky="w", padx=5, pady=5
     )
-    ttk.Entry(root, textvariable=kodu_var, width=30).grid(row=9, column=1, columnspan=2, sticky="w")
+    ttk.Entry(root, textvariable=kodu_var, style="Flat.TEntry", width=30).grid(row=9, column=1, columnspan=2, sticky="w")
 
 
     allikas = allikas_var.get()
@@ -465,7 +526,10 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
         except Exception as e:
             messagebox.showerror("Viga", str(e))
     ttk.Button(root, text="Genereeri ajakava", command=nupp_genereeri).grid(
-        row=10, column=0, columnspan=3, pady=10
+        row=10, column=0, pady=10, sticky="WE"
+    )
+    ttk.Button(root, text="Kopeeri lõikelauale", command=nupp_genereeri).grid(
+        row=10, column=1, pady=10, sticky="WE"
     )
 
     root.mainloop()
@@ -511,6 +575,8 @@ if __name__ == "__main__":
             'U18' : timedelta(hours=2),
             'U20' : timedelta(hours=2),            
     }
+    
+
 
     linn, võistkonnad = loe_tsoon(tsoonifail, tsooni_nr)
     print('Loen', tsoonifail, f'tsooni_nr: {tsooni_nr}')
