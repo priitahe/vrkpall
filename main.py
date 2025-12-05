@@ -428,24 +428,26 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
     )
     tüüp_combo.grid(row=6, column=1, sticky="w")
 
-    # algusajad
+    # algusaeg I päeval
     ttk.Label(root, text="Algusaeg I päeval (HH:MM):").grid(
         row=7, column=0, sticky="w", padx=5, pady=5
     )
     ttk.Entry(root, textvariable=algus1_var, style="Flat.TEntry", width=8).grid(row=7, column=1, sticky="WE")
 
+    # algusaeg II päeval
     ttk.Label(root, text="Algusaeg II päeval (HH:MM):").grid(
         row=8, column=0, sticky="w", padx=5, pady=5
     )
     ttk.Entry(root, textvariable=algus2_var, style="Flat.TEntry", width=8).grid(row=8, column=1, sticky="WE")
 
-    # koduvõistkond
+    # koduvõistkonna nimi
     ttk.Label(root, text="Koduvõistkonna nimi:").grid(
         row=9, column=0, sticky="w", padx=5, pady=5
     )
     ttk.Entry(root, textvariable=kodu_var, style="Flat.TEntry", width=30).grid(row=9, column=1, sticky="WE")
 
-
+    # täida teksti_kast failist loetud infoga
+    # v]iks eraldada eraldi abifunktsiooni
     allikas = allikas_var.get()
     if allikas == "tsoon":
         try:
@@ -454,11 +456,10 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
             raise ValueError("Tsooni number peab olema täisarv 1–10.")
         linn, võistkonnad = loe_tsoon(tsoonifail, tsooni_nr)
         sisestus_box.insert('1.0', '\n'.join(võistkonnad))
-    # nupp
-
         
     def nupp_genereeri():
         nonlocal võistlustabelid
+        
         allikas = allikas_var.get()
         vanuseklass=vanuse_var.get()
         kuupäev=kuupäev_var.get()
@@ -497,6 +498,10 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
             raise ValueError("Võistkondi ei leitud. Kontrolli tsooni numbrit või sisestatud nimesid.")
         if len(võistkonnad) not in (5, 6):
             raise ValueError(f"Praegu on toetatud ainult 5 või 6 võistkonnaga turniir. Leiti: {len(võistkonnad)}.")
+         
+        if not koduvõistkond or koduvõistkond not in võistkonnad:
+            return messagebox.showinfo("!", "Koduvõistkonda ei leitud!")
+            
  
         berger_str = f'{len(võistkonnad)}_{võistluse_tüübid[võistluse_tüüp]}' 
         võistkonnad = liiguta_koduvõistkond(võistkonnad, koduvõistkond, 5)
@@ -506,7 +511,6 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
         # võistluspaaride moodustamine
         try:
             võistluspaarid = loo_võistluspaarid(berger[berger_str], võistkonnad)
-            #võistkonnad = teisenda_tsoonist_tabeliks(võistkonnad)
         except Exception as e:
             raise ValueError(f"Tsooni → turniiri teisendus ebaõnnestus: {e}")
 
@@ -524,31 +528,27 @@ def loo_gui(võistluse_tüübid, mängu_kestused):
         elif võistluse_tüübid[võistluse_tüüp] == '2p2v':
             algusajad = [algus1, algus2]
             võistluspaarid = jaga_väljakutele(võistluspaarid, 2)
-
-        pprint(võistluspaarid)
+    
+        # võistlustabelite loomine
         võistlustabelid = loo_võistlustabelid_järjend(võistluspaarid, algusajad, mängu_kestused[vanuseklass])
         loo_pdf('võistlustabelid.pdf', võistlustabelid)
-
-        try:
-
-            messagebox.showinfo("Valmis", "Salvestasin ajakava faili 'võistlustabelid.pdf'")
-        except Exception as e:
-            messagebox.showerror("Viga", str(e))
     
     def kopeeri_lõikelauale():
         nonlocal võistlustabelid
-        pprint(võistlustabelid)
+        
         output = io.StringIO()
         writer = csv.writer(output, delimiter='\t', lineterminator='\n', quoting=csv.QUOTE_MINIMAL)
+
         for tabel in võistlustabelid:
             for rida in tabel:
                 writer.writerow(rida)
         csv_string = output.getvalue()
         output.close()
+        
         root.clipboard_clear()
         root.clipboard_append(csv_string)
         root.update()  # now it’s in clipboard
-        pprint(csv_string)
+        
     
     ttk.Button(root, text="Genereeri ajakava PDF", command=nupp_genereeri).grid(
         row=10, column=0, pady=10, sticky="WE")
@@ -578,29 +578,37 @@ def loo_pdf(failinimi, võistlustabelid):
 
     for t in pdftabelid:
         pdf.build(pdftabelid)
+
+
 # --------------------------------
 # PROGRAMMI KÄIVITAMINE
 # --------------------------------
 
 if __name__ == "__main__":
+    
+    # fumktsioonide jaoks vajalikud parameetrid
     tsoonifail = 'voistkonnad.txt'
     tsooni_nr = 1
     koduvõistkonna_nr = 5  # mitmendaks nihutatakse koduvõistkond (nt 5. positsioonile)
-    algusaeg_str = '15:00'
+
     võistluse_tüübid  = {
             'ühepäevane ühel väljakul' : '1p1v',
             'ühepäevane kahel väljakul' : '1p2v',
             'kahepäevane ühel väljakul' : '2p1v',
             'kahepäevane kahel väljakul' : '2p2v',
     }
+    
+    # kui on üks aeg, siis ühepäevane võistlus, kui kaks siis kahepäevane
+    algusajad = ['15:00', '10:00'] 
+    
     mängu_kestused = {
             'U16' : timedelta(hours=1, minutes=15),
             'U18' : timedelta(hours=2),
             'U20' : timedelta(hours=2),            
     }
     
-
-
+    """
+    # funktsioonide testid
     linn, võistkonnad = loe_tsoon(tsoonifail, tsooni_nr)
     print('Loen', tsoonifail, f'tsooni_nr: {tsooni_nr}')
     print(linn)
@@ -629,8 +637,8 @@ if __name__ == "__main__":
     
     print()
     print('Loon võistlustabelid ja kirjutan pdf faili')
-    võistlustabelid = loo_võistlustabelid_järjend(võistluspaarid, ['15:00', '10:00'])
-    #pprint(võistlustabelid)
+    võistlustabelid = loo_võistlustabelid_järjend(võistluspaarid, algusajad)
     loo_pdf('võistlustabelid.pdf', võistlustabelid)
+    """
     
     loo_gui(võistluse_tüübid, mängu_kestused)
